@@ -1,0 +1,3 @@
+maps-scraper search "restaurant" --center "48.715749107432806,2.103996874945464" --radius 10
+
+maps-scraper export --open-at "Wednesday 21:00" --near "48.715749107432806,2.103996874945464" --min-rating 4.0 -o results.csv
