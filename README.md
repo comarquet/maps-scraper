@@ -140,14 +140,67 @@ maps-scraper history --db dentist_london.db
 ## Query the database directly
 
 ```bash
-sqlite3 maps_scraper.db
+sqlite3 my-search.db
+```
 
--- Top 20 by rating (with at least 50 reviews)
-SELECT name, rating, review_count, address
+### Top rated with minimum reviews
+
+```sql
+SELECT name, address, rating, review_count
 FROM places
-WHERE review_count >= 50
+WHERE rating >= 4.0
+  AND review_count >= 20
 ORDER BY rating DESC, review_count DESC
 LIMIT 20;
+```
+
+### Sort by distance from a point
+
+```sql
+SELECT name, address, rating, review_count,
+    ((latitude - 48.7161) * (latitude - 48.7161)
+     + (longitude - 2.1039) * (longitude - 2.1039)) AS dist_sq
+FROM places
+ORDER BY dist_sq ASC;
+```
+
+### Closest places with minimum rating and reviews
+
+```sql
+SELECT name, address, rating, review_count,
+    ((latitude - 48.7161) * (latitude - 48.7161)
+     + (longitude - 2.1039) * (longitude - 2.1039)) AS dist_sq
+FROM places
+WHERE rating >= 4.0
+  AND review_count >= 3
+ORDER BY dist_sq ASC;
+```
+
+### Filter by type
+
+```sql
+SELECT name, address, rating, review_count
+FROM places
+WHERE maps_type_label = 'Computer repair service'
+ORDER BY rating DESC;
+```
+
+### Places with a website and phone number
+
+```sql
+SELECT name, phone, website, rating
+FROM places
+WHERE website IS NOT NULL
+  AND phone IS NOT NULL
+ORDER BY rating DESC;
+```
+
+### Count results per search
+
+```sql
+SELECT s.id, s.query, s.location, s.total_found, s.searched_at
+FROM searches s
+ORDER BY s.searched_at DESC;
 ```
 
 ## Project structure

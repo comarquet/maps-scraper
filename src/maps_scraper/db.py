@@ -10,15 +10,15 @@ DB_PATH = Path("maps_scraper.db")
 
 
 def db_path_for_search(query: str, location_label: str) -> Path:
-    """Generate a meaningful database filename from query and location."""
+    """Generate a database filename from the search query in kebab-case."""
     def slugify(s: str) -> str:
         s = s.lower().strip()
-        s = re.sub(r"[°'\"\s]+", "_", s)   # spaces and special chars → _
-        s = re.sub(r"[^a-z0-9_.,+-]", "", s)  # keep only safe chars
-        s = re.sub(r"_+", "_", s).strip("_")
-        return s[:40]
+        s = re.sub(r"[\s_]+", "-", s)
+        s = re.sub(r"[^a-z0-9-]", "", s)
+        s = re.sub(r"-+", "-", s).strip("-")
+        return s
 
-    return Path(f"{slugify(query)}__{slugify(location_label)}.db")
+    return Path(f"{slugify(query)}.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS searches (
@@ -52,6 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_places_search ON places(search_id);
 
 
 def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")

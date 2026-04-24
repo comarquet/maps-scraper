@@ -69,7 +69,8 @@ def cmd_search(args: argparse.Namespace) -> None:
     query = args.query or args.type
     query_label = args.query or args.type
 
-    db_path = db_path_for_search(query_label, location_label)
+    auto_name = db_path_for_search(query_label, location_label)
+    db_path = Path(args.output_dir) / auto_name if args.output_dir else auto_name
     print(f"Database: {db_path}", file=sys.stderr)
     conn = db.get_connection(db_path)
     db.init_db(conn)
@@ -228,6 +229,8 @@ def main() -> None:
                           help="Search radius in km around --center (e.g. 15)")
     p_search.add_argument("--type", "-t", metavar="TYPE",
                           help="Filter by primary type (e.g. restaurant, dentist, cafe)")
+    p_search.add_argument("--output-dir", metavar="DIR",
+                          help="Directory where the database file will be saved (default: current directory)")
     p_search.add_argument("--verbose", "-v", action="store_true",
                           help="Show detailed progress")
     p_search.set_defaults(func=cmd_search)

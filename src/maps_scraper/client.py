@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import socket
 import time
 
 import httpx
@@ -10,6 +11,10 @@ from .models import BoundingBox, Place
 logger = logging.getLogger(__name__)
 
 SEARCH_TEXT_URL = "https://places.googleapis.com/v1/places:searchText"
+
+# Force IPv4 to avoid conflicts with API key IP restrictions
+_transport = httpx.HTTPTransport(local_address="0.0.0.0")
+_client = httpx.Client(transport=_transport)
 
 FIELD_MASK = (
     "places.id,"
@@ -81,7 +86,7 @@ def _paginate(query: str, location_restriction: dict, api_key: str,
     while True:
         page += 1
         time.sleep(RATE_LIMIT_DELAY)
-        resp = httpx.post(SEARCH_TEXT_URL, json=body, headers=headers, timeout=30)
+        resp = _client.post(SEARCH_TEXT_URL, json=body, headers=headers, timeout=30)
         if resp.status_code >= 400:
             logger.error("API error %d: %s", resp.status_code, resp.text)
         resp.raise_for_status()
